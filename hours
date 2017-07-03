@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+from datetime import date, time, datetime
+import json
+
+from functools import singledispatch
+
+@singledispatch
+def to_serializable(val):
+    """Used by default."""
+    return str(val)
+    
+@to_serializable.register(datetime)
+def ts_datetime(val):
+    """Used if *val* is an instance of datetime."""
+    return val.isoformat() + "Z"
+
+@to_serializable.register(date)
+def ts_date(val):
+    """Used if *val* is an instance of date."""
+    return val.isoformat()
+
+class Day(object):
+    def __init__(self):
+        self.date = date()
+        self.clock_on = time()
+        self.clock_off = time()
+
+# start = input('Clock on: ')
+# end = input('Clock off: ')
+#
+# start_time = time(int(start[:2]), int(start[2:]))
+# end_time = time(int(end[:2]), int(end[2:]))
+
+def string_to_time(s):
+    """Takes a 24-hour string eg. 0730 to a time object."""
+    return time(int(s[:2]), int(s[2:]))
+
+def time_to_minutes(t):
+    """Convert a time object to minutes since midnight."""
+    return t.hour * 60 + t.minute
+
+def time_diff(t1, t2):
+    diff_time_to_minutes = abs(time_to_minutes(t1) - time_to_minutes(t2))
+    return diff_time_to_minutes
+
+# td = time_diff(start_time, end_time)
+
+# print(float(td) / 60)
+# print('{} hours, {} minutes'.format(td // 60, td % 60))
+
+days = ('thu', 'fri', 'mon', 'tue', 'wed')
+#days = ('thu',)
+
+minutes = {}
+for d in days:
+    start = string_to_time(input('{} clock on: '.format(d)))
+    end = string_to_time(input('{} clock off: '.format(d)))
+    td = time_diff(start, end)
+    minutes[d] = td
+    print('{} hours, {} minutes\n'.format(td // 60, td % 60))
+
+total_minutes = 0
+for d in days:
+    total_minutes += minutes[d]
+
+print('Total: {} hours, {} minutes.'.format(total_minutes // 60, total_minutes % 60))
+print('{:.2f} hours @ $23 = ${:.2f}'.format(total_minutes / 60.0, total_minutes / 60.0 * 23.0))
